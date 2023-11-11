@@ -55,9 +55,11 @@ pipeline {
                         def containerExists = sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker ps -q --filter name="${containerName}"', returnStatus: true) == 0
 
                         echo 'containerExists: '
-                        echo "${containerExists}"
+                        echo '${containerExists}'
 
-                        if (containerExists) {
+                        echo '${containerName}'
+
+                        if (containerExists == ${containerName}) {
                             echo "Container exists, stopping it..."
 
                             // Use SSH to stop the Docker container
