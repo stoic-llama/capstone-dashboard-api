@@ -52,25 +52,20 @@ pipeline {
                 ]) {
                     script {
                         // Use SSH to check if the container exists
-                        def id = sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker ps -q --filter name="${containerName}"', returnStatus: true)
+                        def containerExists = sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker stop "${containerName}"', returnStatus: true)
 
-                        // echo 'containerExists: '
-                        // echo "${containerExists}"
+                        echo 'containerExists: '
+                        echo "${containerExists}"
 
-                        // echo "${containerName}"
+                        // if (containerExists != 0) {
+                        //     // echo "Container exists, stopping it..."
 
-                        echo "id: "
-                        echo "${id}"
-
-                        if (id.length() > 0) {
-                            // echo "Container exists, stopping it..."
-
-                            // Use SSH to stop the Docker container
-                            sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" echo "Container ${id} exists, stopping it..."; docker stop "${id}"')
-                            echo "Container stopped successfully"
-                        } else {
-                            echo "Container does not exist, continuing..."
-                        }
+                        //     // Use SSH to stop the Docker container
+                        //     sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" echo "Container ${id} exists, stopping it..."; docker stop "${id}"')
+                        //     echo "Container stopped successfully"
+                        // } else {
+                        //     echo "Container does not exist, continuing..."
+                        // }
                     }
                 }
 
