@@ -61,7 +61,7 @@ pipeline {
                             echo "Container exists, stopping it..."
 
                             // Use SSH to stop the Docker container
-                            sh 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker stop "${containerName}"'
+                            sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker stop "${containerName}"')
                             echo "Container stopped successfully"
                         } else {
                             echo "Container does not exist, continuing..."
