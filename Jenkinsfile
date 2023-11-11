@@ -46,15 +46,22 @@ pipeline {
             steps {
                 echo 'deploying the application...' 
 
-                // Use the withCredentials block to access the credentials
-                // Note: need --rm when docker run.. so that docker stop can kill it cleanly
-               withCredentials([
-                    string(credentialsId: 'website', variable: 'WEBSITE'),
-                ]) {
-                    sh 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key ${WEBSITE} "docker stop capstone-dashboard-api"'
+                script {
+                    def containerName = 'capstone-dashboard-api'
 
+                    def containerExists = sh(returnStdout: true, script: "docker ps -q --filter name=${containerName}")
+
+                    if (containerExists.length() != 0) {
+                        // Stop the Docker container
+                        sh "docker stop ${containerName}"
+                        echo "Container stopped successfully. Continuing..."
+                    } else {
+                        echo "Container does not exist. Continuing..."
+                    }
                 }
 
+                // Use the withCredentials block to access the credentials
+                // Note: need --rm when docker run.. so that docker stop can kill it cleanly
                withCredentials([
                     string(credentialsId: 'website', variable: 'WEBSITE'),
                     string(credentialsId: 'mongodb_metrics', variable: 'MONGODB_METRICS'),
@@ -63,7 +70,7 @@ pipeline {
                         ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key ${WEBSITE} "docker run -d \
                         -p 7100:7100 \
                         --rm \
-                        -e DATABASE_URL=${MONGODB_METRICS}
+                        -e DATABASE_URL=${MONGODB_METRICS} \
                         --name capstone-dashboard-api \
                         --network monitoring \
                         -v /var/run/docker.sock:/var/run/docker.sock \
