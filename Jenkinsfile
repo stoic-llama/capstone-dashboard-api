@@ -59,7 +59,7 @@ pipeline {
 
                         echo "${containerName}"
 
-                        if (containerExists == containerName) {
+                        if (containerExists == true) {
                             echo "Container exists, stopping it..."
 
                             // Use SSH to stop the Docker container
