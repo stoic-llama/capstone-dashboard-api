@@ -59,11 +59,14 @@ pipeline {
 
                         // echo "${containerName}"
 
+                        echo "id: "
+                        echo "${id}"
+
                         if (id.length() > 0) {
-                            echo "Container exists, stopping it..."
+                            // echo "Container exists, stopping it..."
 
                             // Use SSH to stop the Docker container
-                            sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker ps -q --filter name="${containerName}"; docker stop "${id}"')
+                            sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" echo "Container ${id} exists, stopping it..."; docker stop "${id}"')
                             echo "Container stopped successfully"
                         } else {
                             echo "Container does not exist, continuing..."
