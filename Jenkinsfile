@@ -54,7 +54,7 @@ pipeline {
                         // Use SSH to check if the container exists
                         def containerExists = sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker stop "${containerName}"', returnStatus: true)
 
-                        echo 'containerExists: "${containerExists}"'
+                        echo "containerExists: ${containerExists}"
                     }
                 }
 
