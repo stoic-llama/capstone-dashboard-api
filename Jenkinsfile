@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         version = '1.0'
+        containerName = 'capstone-dashboard-api'
     }
 
     stages {
@@ -29,9 +30,9 @@ pipeline {
 
                 echo 'building the application...'
                 // sh 'doctl registry repo list-v2'
-                sh "docker build -t capstone-dashboard-api:${version} ."
-                sh "docker tag capstone-dashboard-api:${version} stoicllama/capstone-dashboard-api:${version}"
-                sh "docker push stoicllama/capstone-dashboard-api:${version}"
+                sh 'docker build -t "${containerName}:${version}" .'
+                sh 'docker tag "${containerName}:${version}" stoicllama/"${containerName}:${version}"'
+                sh 'docker push stoicllama/"${containerName}:${version}"'
                 // sh 'doctl registry repo list-v2'
             }
         }
@@ -45,24 +46,27 @@ pipeline {
         stage("deploy") {
             steps {
                 echo 'deploying the application...' 
+                
+                withCredentials([
+                    string(credentialsId: 'website', variable: 'WEBSITE'),
+                ]) {
+                    script {
+                        // Use SSH to check if the container exists
+                        def containerExists = sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker ps -q --filter name="${containerName}"', returnStatus: true) == 0
 
-                script {
-                    def containerName = 'capstone-dashboard-api'
+                        if (containerExists) {
+                            echo "Container exists, stopping it..."
 
-                    def containerExists = sh(returnStdout: true, script: "docker ps -q --filter name=${containerName}")
-
-                    if (containerExists.length() != 0) {
-                        // Stop the Docker container
-                        sh "docker stop ${containerName}"
-                        echo "Container stopped successfully. Continuing..."
-                    } else {
-                        echo "Container does not exist. Continuing..."
+                            // Use SSH to stop the Docker container
+                            sh 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker stop "${containerName}"'
+                            echo "Container stopped successfully"
+                        } else {
+                            echo "Container does not exist, continuing..."
+                        }
                     }
                 }
 
-                // Use the withCredentials block to access the credentials
-                // Note: need --rm when docker run.. so that docker stop can kill it cleanly
-               withCredentials([
+                withCredentials([
                     string(credentialsId: 'website', variable: 'WEBSITE'),
                     string(credentialsId: 'mongodb_metrics', variable: 'MONGODB_METRICS'),
                 ]) {
@@ -71,11 +75,11 @@ pipeline {
                         -p 7100:7100 \
                         --rm \
                         -e DATABASE_URL=${MONGODB_METRICS} \
-                        --name capstone-dashboard-api \
+                        --name ${containerName} \
                         --network monitoring \
                         -v /var/run/docker.sock:/var/run/docker.sock \
-                        stoicllama/capstone-dashboard-api:${version}
-
+                        stoicllama/${containerName}:${version}
+                        
                         docker ps
                         "
                     '''
