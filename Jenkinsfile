@@ -48,22 +48,22 @@ pipeline {
                 echo 'deploying the application...' 
                 
                 withCredentials([
-                    string(credentialsId: 'website', variable: 'WEBSITE'),
+                    string(credentialsId: 'monitoring', variable: 'MONITORING'),
                 ]) {
                     script {
                         // Use SSH to check if the container exists
-                        def containerExists = sh(script: 'ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key "${WEBSITE}" docker stop "${containerName}"', returnStatus: true)
+                        def containerExists = sh(script: 'ssh -i /var/jenkins_home/.ssh/monitoring_deploy_rsa_key "${MONITORING}" docker stop "${containerName}"', returnStatus: true)
 
                         echo "containerExists: $containerExists"
                     }
                 }
 
                 withCredentials([
-                    string(credentialsId: 'website', variable: 'WEBSITE'),
+                    string(credentialsId: 'monitoring', variable: 'MONITORING'),
                     string(credentialsId: 'mongodb_metrics', variable: 'MONGODB_METRICS'),
                 ]) {
                     sh '''
-                        ssh -i /var/jenkins_home/.ssh/website_deploy_rsa_key ${WEBSITE} "docker run -d \
+                        ssh -i /var/jenkins_home/.ssh/monitoring_deploy_rsa_key ${MONITORING} "docker run -d \
                         -p 7100:7100 \
                         --rm \
                         -e DATABASE_URL=${MONGODB_METRICS} \
